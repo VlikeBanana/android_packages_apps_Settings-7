@@ -203,11 +203,14 @@
     <string name="reset_android_title">Android default</string>
     <string name="reset_darkkat_title">DarkKat default</string>
 
- <!-- Slim DSLV -->
+    <!-- Slim DSLV -->
     <string name="help">Help</string>
     <string name="reset_message">Reset all entries to default?</string>
     <string name="attention">Attention</string>
     <string name="reset">Reset</string>
+    <string name="add">Add</string>
+    <string name="enabled">Enabled</string>
+    <string name="choose_app">Choose application</string>
     <string name="shortcut_action_none">None</string>
     <string name="shortcut_action_longpress">Longpress:</string>
     <string name="shortcut_action_select_action_longpress">Choose longpress action:</string>

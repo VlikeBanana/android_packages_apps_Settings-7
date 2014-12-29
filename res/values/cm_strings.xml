@@ -1128,4 +1128,5 @@
 
     <!-- Label for settings shortcut: carrier selection -->
     <string name="shortcut_carrier_title">Network operators</string>
+
 </resources>

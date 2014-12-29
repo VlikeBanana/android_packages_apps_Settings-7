@@ -375,4 +375,8 @@
     <string name="lockscreen_wallpaper_clear_title">Return to default</string>
     <string name="reset_lockscreen_wallpaper">Lockscreen wallpaper set back to default</string>
 
+    <!-- EdgeGesture service -->
+    <string name="edge_gesture_service_title">Block gesture touch events</string>
+    <string name="edge_gesture_service_summary">Don\'t send touch events for navigation and status bar gestures to apps</string>
+
 </resources>

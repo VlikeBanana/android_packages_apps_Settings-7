@@ -75,9 +75,7 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
     private static final String KEY_APP_SWITCH_LONG_PRESS = "hardware_keys_app_switch_long_press";
     private static final String KEY_VOLUME_KEY_CURSOR_CONTROL = "volume_key_cursor_control";
     private static final String KEY_SWAP_VOLUME_BUTTONS = "swap_volume_buttons";
-    private static final String KEY_ENABLE_NAVIGATION_BAR = "enable_nav_bar";
-    private static final String KEY_ENABLE_HW_KEYS = "enable_hw_keys";
-    private static final String KEY_NAVIGATION_BAR_LEFT = "navigation_bar_left";
+    private static final String KEY_ENABLE_HW_KEYS = "enable_hw_keys";	
     private static final String KEY_NAVIGATION_RECENTS_LONG_PRESS = "navigation_recents_long_press";
     private static final String KEY_POWER_END_CALL = "power_end_call";
     private static final String KEY_HOME_ANSWER_CALL = "home_answer_call";
@@ -95,7 +93,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
     private static final String CATEGORY_CAMERA = "camera_key";
     private static final String CATEGORY_VOLUME = "volume_keys";
     private static final String CATEGORY_BACKLIGHT = "key_backlight";
-    private static final String CATEGORY_NAVBAR = "nav_cat";
     private static final String CATEGORY_HW_KEYS = "hw_keys";
 
     // Available custom actions to perform on a key press.
@@ -207,24 +204,7 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         mHomeAnswerCall = (SwitchPreference) findPreference(KEY_HOME_ANSWER_CALL);
 
         mHandler = new Handler();
-
-        // Navigation bar category
-        final PreferenceCategory navBarCategory = (PreferenceCategory) findPreference(CATEGORY_NAVBAR);
-
-        // Navigation bar keys switch
-        mEnableNavigationBar = (SwitchPreference) findPreference(KEY_ENABLE_NAVIGATION_BAR);
-
-        // Navigation bar left
-        mNavigationBarLeftPref = (SwitchPreference) findPreference(KEY_NAVIGATION_BAR_LEFT);
-
-        // Internal bool to check if the device have a navbar by default or not!
-        boolean hasNavBarByDefault = getResources().getBoolean(
-                com.android.internal.R.bool.config_showNavigationBar);
-        boolean enableNavigationBar = Settings.System.getInt(getContentResolver(),
-                Settings.System.NAVIGATION_BAR_SHOW, hasNavBarByDefault ? 1 : 0) == 1;
-        mEnableNavigationBar.setChecked(enableNavigationBar);
-        mEnableNavigationBar.setOnPreferenceChangeListener(this);
-
+    
         // Enable/disable hw keys
         boolean enableHwKeys = Settings.System.getInt(getContentResolver(),
                 Settings.System.ENABLE_HW_KEYS, 1) == 1;
@@ -237,12 +217,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
                     getPreferenceScreen().findPreference(CATEGORY_HW_KEYS);
             getPreferenceScreen().removePreference(hwKeysPref);
         }
-
-        // Navigation bar recents long press activity needs custom setup
-        mNavigationRecentsLongPressAction =
-                initRecentsLongPressAction(KEY_NAVIGATION_RECENTS_LONG_PRESS);
-
-        final CMHardwareManager hardware = CMHardwareManager.getInstance(getActivity());
 
         if (hasPowerKey) {
             if (!Utils.isVoiceCapable(getActivity())) {
@@ -428,7 +402,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
             }
         }
         updateDisableHwKeysOption();
-        updateNavBarSettings();
     }
 
     @Override
@@ -465,78 +438,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         return list;
     }
 
-    private ListPreference initRecentsLongPressAction(String key) {
-        ListPreference list = (ListPreference) getPreferenceScreen().findPreference(key);
-        list.setOnPreferenceChangeListener(this);
-
-        // Read the componentName from Settings.Secure, this is the user's prefered setting
-        String componentString = CMSettings.Secure.getString(getContentResolver(),
-                CMSettings.Secure.RECENTS_LONG_PRESS_ACTIVITY);
-        ComponentName targetComponent = null;
-        if (componentString == null) {
-            list.setSummary(getString(R.string.hardware_keys_action_last_app));
-        } else {
-            targetComponent = ComponentName.unflattenFromString(componentString);
-        }
-
-        // Dyanamically generate the list array,
-        // query PackageManager for all Activites that are registered for ACTION_RECENTS_LONG_PRESS
-        PackageManager pm = getPackageManager();
-        Intent intent = new Intent(cyanogenmod.content.Intent.ACTION_RECENTS_LONG_PRESS);
-        List<ResolveInfo> recentsActivities = pm.queryIntentActivities(intent,
-                PackageManager.MATCH_DEFAULT_ONLY);
-        if (recentsActivities.size() == 0) {
-            // No entries available, disable
-            list.setSummary(getString(R.string.hardware_keys_action_last_app));
-            CMSettings.Secure.putString(getContentResolver(),
-                    CMSettings.Secure.RECENTS_LONG_PRESS_ACTIVITY, null);
-            list.setEnabled(false);
-            return list;
-        }
-
-        CharSequence[] entries = new CharSequence[recentsActivities.size() + 1];
-        CharSequence[] values = new CharSequence[recentsActivities.size() + 1];
-        // First entry is always default last app
-        entries[0] = getString(R.string.hardware_keys_action_last_app);
-        values[0] = "";
-        list.setValue(values[0].toString());
-        int i = 1;
-        for (ResolveInfo info : recentsActivities) {
-            try {
-                // Use pm.getApplicationInfo for the label,
-                // we cannot rely on ResolveInfo that comes back from queryIntentActivities.
-                entries[i] = pm.getApplicationInfo(info.activityInfo.packageName, 0).loadLabel(pm);
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.e(TAG, "Error package not found: " + info.activityInfo.packageName, e);
-                // Fallback to package name
-                entries[i] = info.activityInfo.packageName;
-            }
-
-            // Set the value to the ComponentName that will handle this intent
-            ComponentName entryComponent = new ComponentName(info.activityInfo.packageName,
-                    info.activityInfo.name);
-            values[i] = entryComponent.flattenToString();
-            if (targetComponent != null) {
-                if (entryComponent.equals(targetComponent)) {
-                    // Update the selected value and the preference summary
-                    list.setSummary(entries[i]);
-                    list.setValue(values[i].toString());
-                }
-            }
-            i++;
-        }
-        list.setEntries(entries);
-        list.setEntryValues(values);
-        return list;
-    }
-
-    private void handleActionListChange(ListPreference pref, Object newValue, String setting) {
-        String value = (String) newValue;
-        int index = pref.findIndexOfValue(value);
-        pref.setSummary(pref.getEntries()[index]);
-        CMSettings.System.putInt(getContentResolver(), setting, Integer.valueOf(value));
-    }
-
     private void handleSystemActionListChange(ListPreference pref, Object newValue, String setting) {
         String value = (String) newValue;
         int index = pref.findIndexOfValue(value);
@@ -548,37 +449,26 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
     protected int getMetricsCategory() {
         return CMMetricsLogger.BUTTON_SETTINGS;
     }
-
-    private void updateNavBarSettings() {
-        boolean enableNavigationBar = Settings.System.getInt(getContentResolver(),
-                Settings.System.NAVIGATION_BAR_SHOW,
-                crUtils.isNavBarDefault(getActivity()) ? 1 : 0) == 1;
-        mEnableNavigationBar.setChecked(enableNavigationBar);
-
-        updateNavbarPreferences(enableNavigationBar);
-    }
-
-    private void updateNavbarPreferences(boolean show) {
+    
+     private void handleActionListChange(ListPreference pref, Object newValue, String setting) {
+        String value = (String) newValue;
+        int index = pref.findIndexOfValue(value);
+        pref.setSummary(pref.getEntries()[index]);
+        CMSettings.System.putInt(getContentResolver(), setting, Integer.valueOf(value));
     }
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
-        if (preference == mEnableNavigationBar) {
-            mEnableNavigationBar.setEnabled(true);
-            Settings.System.putInt(getActivity().getContentResolver(),
-                    Settings.System.NAVIGATION_BAR_SHOW,
-                        ((Boolean) newValue) ? 1 : 0);
+        if (preference == mHomeLongPressAction) {
+            handleActionListChange(mHomeLongPressAction, newValue,
+                    CMSettings.System.KEY_HOME_LONG_PRESS_ACTION);
             return true;
-        } else if (preference == mEnableHwKeys) {
+        }  else if (preference == mEnableHwKeys) {
             boolean hWkeysValue = (Boolean) newValue;
             Settings.System.putInt(getActivity().getApplicationContext().getContentResolver(),
                     Settings.System.ENABLE_HW_KEYS, hWkeysValue ? 1 : 0);
             writeDisableHwKeysOption(getActivity(), hWkeysValue);
             updateDisableHwKeysOption();
-            return true;
-        } else if (preference == mHomeLongPressAction) {
-            handleActionListChange(mHomeLongPressAction, newValue,
-                    CMSettings.System.KEY_HOME_LONG_PRESS_ACTION);
             return true;
         } else if (preference == mHomeDoubleTapAction) {
             handleActionListChange(mHomeDoubleTapAction, newValue,
@@ -611,20 +501,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         } else if (preference == mVolumeKeyCursorControl) {
             handleSystemActionListChange(mVolumeKeyCursorControl, newValue,
                     Settings.System.VOLUME_KEY_CURSOR_CONTROL);
-            return true;
-        } else if (preference == mNavigationRecentsLongPressAction) {
-            // RecentsLongPressAction is handled differently because it intentionally uses
-            // Settings.System
-            String putString = (String) newValue;
-            int index = mNavigationRecentsLongPressAction.findIndexOfValue(putString);
-            CharSequence summary = mNavigationRecentsLongPressAction.getEntries()[index];
-            // Update the summary
-            mNavigationRecentsLongPressAction.setSummary(summary);
-            if (putString.length() == 0) {
-                putString = null;
-            }
-            CMSettings.Secure.putString(getContentResolver(),
-                    CMSettings.Secure.RECENTS_LONG_PRESS_ACTIVITY, putString);
             return true;
         } else if (preference == mCameraDoubleTapPowerGesture) {
             boolean value = (Boolean) newValue;

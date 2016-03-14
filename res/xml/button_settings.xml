@@ -40,17 +40,10 @@
             android:dependency="enable_nav_bar" />
 
         <com.android.settings.cyanogenmod.CMSystemSettingSwitchPreference
-            android:key="navigation_bar_menu_arrow_keys"
-            android:title="@string/navigation_bar_arrow_keys_title"
-            android:summary="@string/navigation_bar_arrow_keys_summary"
-            android:defaultValue="false"
-            android:dependency="enable_nav_bar" />
-
-        <PreferenceScreen
-            android:key="slim_dim"
-            android:fragment="com.android.settings.crdroid.SlimDim"
-            android:title="@string/dim_nav_buttons_category"
-            android:dependency="enable_nav_bar" />
+                android:key="navigation_bar_menu_arrow_keys"
+                android:title="@string/navigation_bar_arrow_keys_title"
+                android:summary="@string/navigation_bar_arrow_keys_summary"
+                android:defaultValue="false" />
 
         <ListPreference
             android:key="navigation_recents_long_press"

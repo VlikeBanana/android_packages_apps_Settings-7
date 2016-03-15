@@ -55,7 +55,6 @@
             android:dialogTitle="@string/navigation_bar_recents_title"
             android:title="@string/navigation_bar_recents_title"
             android:persistent="false" />
-
     </PreferenceCategory>
 
     <PreferenceCategory

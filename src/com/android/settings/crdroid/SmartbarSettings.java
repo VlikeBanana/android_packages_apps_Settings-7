@@ -19,6 +19,7 @@ package com.android.settings.crdroid;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
@@ -43,10 +44,14 @@ public class SmartbarSettings extends SettingsPreferenceFragment implements
     private ListPreference mImeActions;
     private ListPreference mButtonAnim;
 
+    private Context mContext;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.smartbar_settings);
+
+        mContext = getContext();
 
         int contextVal = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 "smartbar_context_menu_mode", 0, UserHandle.USER_CURRENT);

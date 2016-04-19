@@ -32,6 +32,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.provider.Settings;
@@ -64,6 +65,7 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         Preference.OnPreferenceChangeListener {
     private static final String TAG = "SystemSettings";
 
+    private static final String DISABLE_NAV_KEYS = "disable_nav_keys";	
     private static final String KEY_BUTTON_BACKLIGHT = "button_backlight";
     private static final String KEY_HOME_LONG_PRESS = "hardware_keys_home_long_press";
     private static final String KEY_HOME_DOUBLE_TAP = "hardware_keys_home_double_tap";
@@ -140,6 +142,7 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
     private SwitchPreference mCameraDoubleTapPowerGesture;
     private SwitchPreference mEnableNavigationBar;
     private SwitchPreference mEnableHwKeys;
+    private SwitchPreference mDisableNavigationKeys;
 
     private Handler mHandler;
 
@@ -511,24 +514,6 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         return false;
     }
 
-    @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        if (preference == mSwapVolumeButtons) {
-            int value = mSwapVolumeButtons.isChecked()
-                    ? (ScreenType.isTablet(getActivity()) ? 2 : 1) : 0;
-            CMSettings.System.putInt(getActivity().getContentResolver(),
-                    CMSettings.System.SWAP_VOLUME_KEYS_ON_ROTATION, value);
-        } else if (preference == mPowerEndCall) {
-            handleTogglePowerButtonEndsCallPreferenceClick();
-            return true;
-        } else if (preference == mHomeAnswerCall) {
-            handleToggleHomeButtonAnswersCallPreferenceClick();
-            return true;
-        }
-
-        return super.onPreferenceTreeClick(preferenceScreen, preference);
-    }
-
     private static void writeDisableHwKeysOption(Context context, boolean enabled) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         final int defaultBrightness = context.getResources().getInteger(
@@ -547,7 +532,15 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
                 Settings.System.ENABLE_HW_KEYS, 1) == 1;
 
         mEnableHwKeys.setChecked(enabled);
+    }
 
+    private void updateDisableNavkeysOption() {
+        boolean enabled = CMSettings.Secure.getInt(getActivity().getContentResolver(),
+                CMSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0) != 0;
+        mDisableNavigationKeys.setChecked(enabled);
+    }
+
+    private void updateDisableNavkeysCategories(boolean navbarEnabled) {
         final PreferenceScreen prefScreen = getPreferenceScreen();
 
         /* Disable hw-key options if they're disabled */
@@ -567,28 +560,28 @@ public class ButtonSettings extends SettingsPreferenceFragment implements
         /* Toggle backlight control depending on hw keys state, force it to
            off if enabling */
         if (backlight != null) {
-            backlight.setEnabled(enabled);
+            backlight.setEnabled(!navbarEnabled);
             backlight.updateSummary();
         }
 
         /* Toggle hardkey control availability depending on navbar state */
         if (homeCategory != null) {
-            homeCategory.setEnabled(enabled);
+            homeCategory.setEnabled(!navbarEnabled);
         }
         if (backCategory != null) {
-            backCategory.setEnabled(enabled);
+            backCategory.setEnabled(!navbarEnabled);
         }
         if (menuCategory != null) {
-            menuCategory.setEnabled(enabled);
+            menuCategory.setEnabled(!navbarEnabled);
         }
         if (assistCategory != null) {
-            assistCategory.setEnabled(enabled);
+            assistCategory.setEnabled(!navbarEnabled);
         }
         if (appSwitchCategory != null) {
-            appSwitchCategory.setEnabled(enabled);
+            appSwitchCategory.setEnabled(!navbarEnabled);
         }
         if (mNavigationBarLeftPref != null) {
-            mNavigationBarLeftPref.setEnabled(enabled);
+            mNavigationBarLeftPref.setEnabled(!navbarEnabled);
         }
     }
 

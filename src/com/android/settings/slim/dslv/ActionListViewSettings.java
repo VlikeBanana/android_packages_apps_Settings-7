@@ -516,8 +516,10 @@ public class ActionListViewSettings extends ListFragment implements
     }
 
     private ArrayList<ActionConfig> getConfig() {
-/* Disabled for now till all features are back. Enable it step per step!!!!!!
         switch (mActionMode) {
+/* Disabled for now till all features are back. Enable it step per step!!!!!!
+            case LOCKSCREEN_SHORTCUT:
+                return ActionHelper.getLockscreenShortcutConfig(mActivity);
             case NAV_BAR:
                 return ActionHelper.getNavBarConfigWithDescription(
                     mActivity, mActionValuesKey, mActionEntriesKey);
@@ -533,18 +535,19 @@ public class ActionListViewSettings extends ListFragment implements
             case POWER_MENU_SHORTCUT:
                 return PolicyHelper.getPowerMenuConfigWithDescription(
                     mActivity, mActionValuesKey, mActionEntriesKey);
-            case LOCKSCREEN_SHORTCUT:
-                return ActionHelper.getLockscreenShortcutConfig(mActivity);
             case SHAKE_EVENTS_DISABLED:
                 return ActionHelper.getDisabledShakeApps(mActivity);
-        }
 */
+        }
         return null;
     }
 
     private void setConfig(ArrayList<ActionConfig> actionConfigs, boolean reset) {
-/* Disabled for now till all features are back. Enable it step per step!!!!!!
         switch (mActionMode) {
+/* Disabled for now till all features are back. Enable it step per step!!!!!!
+            case LOCKSCREEN_SHORTCUT:
+                ActionHelper.setLockscreenShortcutConfig(mActivity, actionConfigs, reset);
+                break;
             case NAV_BAR:
                 ActionHelper.setNavBarConfig(mActivity, actionConfigs, reset);
                 break;
@@ -560,14 +563,11 @@ public class ActionListViewSettings extends ListFragment implements
             case POWER_MENU_SHORTCUT:
                 PolicyHelper.setPowerMenuConfig(mActivity, actionConfigs, reset);
                 break;
-            case LOCKSCREEN_SHORTCUT:
-                ActionHelper.setLockscreenShortcutConfig(mActivity, actionConfigs, reset);
-                break;
             case SHAKE_EVENTS_DISABLED:
                 ActionHelper.setDisabledShakeApps(mActivity, actionConfigs, reset);
                 break;
-        }
 */
+        }
     }
 
     private class ViewHolder {
@@ -618,12 +618,12 @@ public class ActionListViewSettings extends ListFragment implements
                 d = ImageHelper.resize(
                         mActivity, PolicyHelper.getPowerMenuIconImage(mActivity,
                         getItem(position).getClickAction(),
-                        iconUri, false), 36); */
+                        iconUri, false), 36); 
             } else {
                 d = ImageHelper.resize(
                         mActivity, ActionHelper.getActionIconImage(mActivity,
                         getItem(position).getClickAction(),
-                        iconUri), 36);
+                        iconUri), 36); */
             }
 
             if (iconUri != null && iconUri.startsWith(ActionConstants.SYSTEM_ICON_IDENTIFIER)) {

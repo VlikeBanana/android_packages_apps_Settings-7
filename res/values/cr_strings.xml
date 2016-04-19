@@ -426,6 +426,7 @@
     <string name="positive_done">Done</string>
 
     <!-- SmartBar -->
+    <string name="crdroid_navbar_settings">Navbar</string>
     <string name="smartbar_category">Smartbar</string>
     <string name="smartbar_settings_title">Smartbar settings</string>
     <string name="smartbar_editor_title">Toggle button editor</string>
